@@ -1,5 +1,5 @@
 #ifndef EXECUTOIN_H
 
-int exec( char **inp );
+int execLogic( char **inp, int tokenCount );
 
 #endif
