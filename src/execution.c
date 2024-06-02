@@ -7,8 +7,10 @@
 #include "builtin.h"
 #include "execution.h"
 
+int execBuiltin( char **inp );
+
 int execCmd( char **inp ){
-	for (int i=0; i<3; i++) {
+	for (int i=0; i<builtinCmdNum; i++) {
 		if (strcmp(inp[0], cmds[i])==0) {
 			return ( *cmdsFunc[i] )( inp[1] );
 		}
