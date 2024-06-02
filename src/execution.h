@@ -1,5 +1,5 @@
 #ifndef EXECUTOIN_H
 
-int execCmd( char **inp );
+int exec( char **inp );
 
 #endif

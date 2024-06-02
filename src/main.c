@@ -30,7 +30,7 @@ int loop(){
 
 	free(check);
 	inpTok[tokenCount]=NULL;
-	execCmd(inpTok);
+	exec(inpTok);
 	return 1;
 }
 
