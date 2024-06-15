@@ -14,6 +14,7 @@ typedef struct cmdSplit{
 }cmdDecompo;
 
 int exec(char **inp);
+int pipeExec( char **leftCmd, char **rightCmd );
 
 cmdDecompo splitter( char **inp, int opPos, int tokenCount ){
 	cmdDecompo cmdSplit={0};
@@ -64,28 +65,33 @@ int execLogic( char **inp, int tokenCount ){
 		}
 	}
 	cmdDecompo splitCmd=splitter(inp, opPos, tokenCount);
-	if (isAnd==true) {
-		int lstat=execLogic(splitCmd.left, opPos);
-		if (lstat==0){
-			int rstat=execLogic(splitCmd.right, tokenCount-opPos-1);
-			return rstat;
-		}else{
-			return lstat;
+	if (isAnd || isOr || isExAnd || isPipe){
+		if (isAnd) {
+			int lstat=execLogic(splitCmd.left, opPos);
+			if (lstat==0){
+				int rstat=execLogic(splitCmd.right, tokenCount-opPos-1);
+				return rstat;
+			}else{
+				return lstat;
+			}
 		}
-	}
-	if (isOr==true) {
-		int lstat=execLogic(splitCmd.left, opPos);
-		if (lstat!=0) {
-			int rstat = execLogic(splitCmd.right, tokenCount - opPos - 1);
-			return rstat;
-		}else{
-			return lstat;
+		if (isOr) {
+			int lstat=execLogic(splitCmd.left, opPos);
+			if (lstat!=0) {
+				int rstat = execLogic(splitCmd.right, tokenCount - opPos - 1);
+				return rstat;
+			}else{
+				return lstat;
+			}
 		}
-	}
-	if (isExAnd==true) {
-		int lstat=execLogic(splitCmd.left, opPos);
-		int rstat=execLogic(splitCmd.left, opPos);
-		return lstat && rstat;
+		if (isExAnd) {
+			int lstat=execLogic(splitCmd.left, opPos);
+			int rstat=execLogic(splitCmd.left, opPos);
+			return lstat && rstat;
+		}
+		if (isPipe) {
+			return pipeExec(splitCmd.left, splitCmd.right);
+		}
 	}
 	if (isAnd==false && isOr==false && isPipe==false) {
 		int ret=exec(inp);
@@ -118,4 +124,37 @@ int exec( char **inp ){
 		exit(0);
 	}
 	return 1;
+}
+
+int pipeExec( char **argv1, char **argv2 ){
+	pid_t pid1, pid2; 
+	int pipefd[2]; 
+
+	pipe(pipefd); 
+
+	pid1 = fork(); 
+	if (pid1 == 0) { 
+		dup2(pipefd[1], STDOUT_FILENO); 
+		close(pipefd[0]); 
+		execvp(argv1[0], argv1); 
+		perror("exec"); 
+		return 1; 
+	} 
+
+	pid2 = fork(); 
+	if (pid2 == 0) { 
+		dup2(pipefd[0], STDIN_FILENO); 
+		close(pipefd[1]); 
+
+		execvp(argv2[0], argv2); 
+		perror("exec"); 
+		return 1; 
+	} 
+
+	close(pipefd[0]); 
+	close(pipefd[1]); 
+
+	wait(&pid1); 
+	wait(&pid2); 
+	return 0; 
 }

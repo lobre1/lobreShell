@@ -15,7 +15,6 @@ int loop(){
 	char inp[_POSIX2_LINE_MAX];
 	char *inpTok[_POSIX2_LINE_MAX];
 
-	char temp[100];
 	int tokenCount=0;
 	if (geteuid()==0) {
 		userState='#';
